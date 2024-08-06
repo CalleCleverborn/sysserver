@@ -6,10 +6,8 @@ const twilio = require('twilio');
 const { parse } = require('json2csv');
 const xml2js = require('xml2js');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const app = express();
-
 
 app.use(cors({
     origin: '*', 
@@ -20,7 +18,6 @@ app.use(express.json());
 
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-
 mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -30,7 +27,6 @@ mongoose.connect(process.env.MONGODB_URI, {
     console.error('Error connecting to MongoDB:', err);
 });
 
-
 const productSchema = new mongoose.Schema({
     name: String,
     price: Number,
@@ -38,7 +34,6 @@ const productSchema = new mongoose.Schema({
 });
 
 const Product = mongoose.model('Product', productSchema);
-
 
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true },
@@ -56,7 +51,6 @@ userSchema.pre('save', async function(next) {
 
 const User = mongoose.model('User', userSchema);
 
-
 app.get('/products', async (req, res) => {
     try {
         const products = await Product.find();
@@ -67,10 +61,8 @@ app.get('/products', async (req, res) => {
     }
 });
 
-
 app.get('/products/:id', async (req, res) => {
     const productId = req.params.id;
-
     try {
         const product = await Product.findById(productId);
         if (!product) {
@@ -84,10 +76,8 @@ app.get('/products/:id', async (req, res) => {
     }
 });
 
-
 app.post('/products', async (req, res) => {
     const newProduct = new Product(req.body);
-
     try {
         await newProduct.save();
         res.status(201).send('Product added');
@@ -97,11 +87,9 @@ app.post('/products', async (req, res) => {
     }
 });
 
-
 app.put('/products/:id', async (req, res) => {
     const productId = req.params.id;
     const updatedProduct = req.body;
-
     try {
         const product = await Product.findByIdAndUpdate(productId, updatedProduct, { new: true });
         if (!product) {
@@ -115,10 +103,8 @@ app.put('/products/:id', async (req, res) => {
     }
 });
 
-
 app.delete('/products/:id', async (req, res) => {
     const productId = req.params.id;
-
     try {
         const product = await Product.findByIdAndDelete(productId);
         if (!product) {
@@ -136,7 +122,6 @@ const sanitizeForXML = (str) => {
     return str.replace(/[<>]/g, ''); 
 };
 
-
 const readProducts = async () => {
     const products = await Product.find().lean();
     return products.map(product => {
@@ -147,7 +132,6 @@ const readProducts = async () => {
         };
     });
 };
-
 
 app.get('/export/csv', async (req, res) => {
     try {
@@ -176,7 +160,6 @@ app.get('/export/xml', async (req, res) => {
     }
 });
 
-
 app.get('/users', async (req, res) => {
     try {
         const users = await User.find();
@@ -187,10 +170,8 @@ app.get('/users', async (req, res) => {
     }
 });
 
-
 app.get('/users/:id', async (req, res) => {
     const userId = req.params.id;
-
     try {
         const user = await User.findById(userId);
         if (!user) {
@@ -204,10 +185,8 @@ app.get('/users/:id', async (req, res) => {
     }
 });
 
-
 app.post('/users', async (req, res) => {
     const newUser = new User(req.body);
-
     try {
         await newUser.save();
         res.status(201).send('User added');
@@ -217,11 +196,9 @@ app.post('/users', async (req, res) => {
     }
 });
 
-
 app.put('/users/:id', async (req, res) => {
     const userId = req.params.id;
     const updatedUser = req.body;
-
     try {
         const user = await User.findByIdAndUpdate(userId, updatedUser, { new: true });
         if (!user) {
@@ -237,7 +214,6 @@ app.put('/users/:id', async (req, res) => {
 
 app.delete('/users/:id', async (req, res) => {
     const userId = req.params.id;
-
     try {
         const user = await User.findByIdAndDelete(userId);
         if (!user) {
@@ -253,7 +229,6 @@ app.delete('/users/:id', async (req, res) => {
 
 app.get('/users/:id/isAdmin', async (req, res) => {
     const userId = req.params.id;
-
     try {
         const user = await User.findById(userId);
         if (!user) {
@@ -269,7 +244,6 @@ app.get('/users/:id/isAdmin', async (req, res) => {
 
 app.post('/create-payment-intent', async (req, res) => {
     const { amount, currency } = req.body;
-
     try {
         const paymentIntent = await stripe.paymentIntents.create({
             amount,
@@ -327,7 +301,6 @@ app.post('/create-checkout-session', async (req, res) => {
         res.status(500).send(`Error creating checkout session: ${error.message}`);
     }
 });
-
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
