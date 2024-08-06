@@ -54,6 +54,7 @@ const User = mongoose.model('User', userSchema);
 
 app.post('/register', async (req, res) => {
     const { username, email, phonenumber, password, isAdmin } = req.body;
+    console.log('Received registration request:', req.body); // Debugging line
 
     try {
         const existingUser = await User.findOne({ email });
@@ -76,6 +77,7 @@ app.post('/register', async (req, res) => {
         res.status(500).send('Error registering user');
     }
 });
+
 
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
