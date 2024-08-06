@@ -7,7 +7,7 @@ const { parse } = require('json2csv');
 const xml2js = require('xml2js');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken'); 
+const jwt = require('jsonwebtoken');
 const app = express();
 
 app.use(cors({
@@ -52,7 +52,6 @@ userSchema.pre('save', async function(next) {
 
 const User = mongoose.model('User', userSchema);
 
-
 app.post('/register', async (req, res) => {
     const { username, email, phonenumber, password, isAdmin } = req.body;
 
@@ -77,7 +76,6 @@ app.post('/register', async (req, res) => {
         res.status(500).send('Error registering user');
     }
 });
-
 
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
