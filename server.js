@@ -7,10 +7,11 @@ const { parse } = require('json2csv');
 const xml2js = require('xml2js');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken'); 
 const app = express();
 
 app.use(cors({
-    origin: '*', 
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type']
 }));
@@ -50,6 +51,55 @@ userSchema.pre('save', async function(next) {
 });
 
 const User = mongoose.model('User', userSchema);
+
+
+app.post('/register', async (req, res) => {
+    const { username, email, phonenumber, password, isAdmin } = req.body;
+
+    try {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).send('User already exists');
+        }
+
+        const newUser = new User({
+            username,
+            email,
+            phonenumber,
+            password,
+            isAdmin: isAdmin || false
+        });
+
+        await newUser.save();
+        res.status(201).send('User registered');
+    } catch (error) {
+        console.error('Error registering user:', error);
+        res.status(500).send('Error registering user');
+    }
+});
+
+
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).send('Invalid email or password');
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).send('Invalid email or password');
+        }
+
+        const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.json({ token, user: { id: user._id, username: user.username, email: user.email, isAdmin: user.isAdmin } });
+    } catch (error) {
+        console.error('Error logging in user:', error);
+        res.status(500).send('Error logging in user');
+    }
+});
 
 app.get('/products', async (req, res) => {
     try {
