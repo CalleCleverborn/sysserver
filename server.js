@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const app = express();
-const port = 3000;
+
 
 app.use(cors({
     origin: '*', 
@@ -327,6 +327,9 @@ app.post('/create-checkout-session', async (req, res) => {
         res.status(500).send(`Error creating checkout session: ${error.message}`);
     }
 });
+
+
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}/`);
 });
