@@ -13,7 +13,7 @@ const app = express();
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type']
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
@@ -52,9 +52,21 @@ userSchema.pre('save', async function(next) {
 
 const User = mongoose.model('User', userSchema);
 
-app.post('/register', async (req, res) => {
+// Middleware to check for Authorization header
+const authenticate = (req, res, next) => {
+    const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    if (token !== process.env.VERCEL_API_TOKEN) {
+        return res.status(401).json({ message: 'Invalid token' });
+    }
+    next();
+};
+
+app.post('/register', authenticate, async (req, res) => {
     const { username, email, phonenumber, password, isAdmin } = req.body;
-    console.log('Received registration request:', req.body); // Debugging line
+    console.log('Received registration request:', req.body);
 
     try {
         const existingUser = await User.findOne({ email });
@@ -77,7 +89,6 @@ app.post('/register', async (req, res) => {
         res.status(500).send('Error registering user');
     }
 });
-
 
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
